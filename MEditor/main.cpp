@@ -11,6 +11,9 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "Shader.h"
 
 const unsigned int SCREEN_WIDTH = 1600;
@@ -272,8 +275,14 @@ int main()
 
     glfwSetKeyCallback(window, keyCallback);
     glfwSetScrollCallback(window, scrollCallback);
-    glfwSetWindowPos(window, 50, 50);
+    glfwSetWindowPos(window, 40, 40);
     glViewport(0, 0, DRAW_SECTION_WIDTH, SCREEN_HEIGHT);
+
+    //Load icon
+    GLFWimage image;
+    image.pixels = stbi_load("resources/medit.png", &image.width, &image.height, 0, 4); //rgba channels 
+    glfwSetWindowIcon(window, 1, &image);
+    stbi_image_free(image.pixels);
 
     //Init ImGui
     IMGUI_CHECKVERSION();
