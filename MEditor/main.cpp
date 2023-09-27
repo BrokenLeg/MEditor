@@ -24,6 +24,7 @@ const unsigned int DRAW_SECTION_WIDTH = 1200;
 unsigned int POINT_VAO;
 const glm::vec3 WHITE_COLOR = {1.0f, 1.0f, 1.0f};
 
+//TODO: Move to files?
 struct Mesh
 {
     glm::vec3 position; //also represents mesh center
@@ -52,6 +53,25 @@ void drawMesh(const Mesh& mesh, Shader& shader)
     glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
 }
 
+glm::mat4 getModelMatrix(const Mesh& mesh)
+{
+    glm::mat4 translate(1.0f);
+    glm::mat4 rotateX(1.0f), rotateY(1.0f), rotateZ(1.0f), rotate(1.0f);
+    glm::mat4 scale(1.0f);
+
+    translate = glm::translate(translate, mesh.position);
+    rotateX = glm::rotate(rotateX, mesh.rotation.x, { 1, 0, 0 });
+    rotateY = glm::rotate(rotateY, mesh.rotation.y, { 0, 1, 0 });
+    rotateZ = glm::rotate(rotateZ, mesh.rotation.z, { 0, 0, 1 });
+
+    rotate = rotateZ * rotateY * rotateX;
+
+    scale = glm::scale(scale, mesh.scale);
+
+    return translate * rotate * scale;
+}
+
+//TODO: Move to files?
 void drawUI(Mesh& selectedMesh)
 {
     ImGui_ImplOpenGL3_NewFrame();
@@ -113,24 +133,7 @@ void drawUI(Mesh& selectedMesh)
 
 }
 
-glm::mat4 getModelMatrix(const Mesh& mesh)
-{
-    glm::mat4 translate(1.0f);
-    glm::mat4 rotateX(1.0f), rotateY(1.0f), rotateZ(1.0f), rotate(1.0f);
-    glm::mat4 scale(1.0f);
-
-    translate = glm::translate(translate, mesh.position);
-    rotateX = glm::rotate(rotateX, mesh.rotation.x, { 1, 0, 0 });
-    rotateY = glm::rotate(rotateY, mesh.rotation.y, { 0, 1, 0 });
-    rotateZ = glm::rotate(rotateZ, mesh.rotation.z, { 0, 0, 1 });
-
-    rotate = rotateZ * rotateY * rotateX;
-
-    scale = glm::scale(scale, mesh.scale);
-
-    return translate * rotate * scale;
-}
-
+//TODO: Move to files?
 struct Camera
 {
     glm::vec3 front;
@@ -154,6 +157,7 @@ glm::mat4 getViewMatrix(const Camera& camera)
     return glm::lookAt(camera.position, camera.position + camera.front, camera.up);
 }
 
+//TODO: Move to smth like BasicShapes?
 unsigned int createTriangleVAO()
 {
     float vertices[] =
@@ -218,6 +222,7 @@ unsigned int createPointVAO()
     return VAO;
 }
 
+//TODO: Move to Callbacks?
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (action == GLFW_RELEASE)
@@ -261,6 +266,7 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 
 int main()
 {
+    //TODO: window class?
     //Init GLFW and window
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -280,10 +286,11 @@ int main()
 
     //Load icon
     GLFWimage image;
-    image.pixels = stbi_load("resources/medit.png", &image.width, &image.height, 0, 4); //rgba channels 
+    image.pixels = stbi_load("resources/medit.png", &image.width, &image.height, 0, 4);
     glfwSetWindowIcon(window, 1, &image);
     stbi_image_free(image.pixels);
 
+    //UI layer?
     //Init ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -309,20 +316,20 @@ int main()
     camera.right = {1.0f, 0.0f, 0.0f};
     camera.fov = 60.0f;
 
-    Shader sh("basic_vertex.shd", "basic_fragment.shd");
+    Shader basicShader("basic_vertex.shd", "basic_fragment.shd");
 
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        sh.Use();
+        basicShader.Use();
         
-        sh.SetMatrix4("model", getModelMatrix(triangle));
-        sh.SetMatrix4("view", getViewMatrix(camera));
-        sh.SetMatrix4("proj", getProjectionMatrix(camera));
+        basicShader.SetMatrix4("model", getModelMatrix(triangle));
+        basicShader.SetMatrix4("view", getViewMatrix(camera));
+        basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
-        drawMesh(triangle, sh);
+        drawMesh(triangle, basicShader);
         drawUI(triangle);
 
         glfwSwapBuffers(window);
@@ -332,6 +339,8 @@ int main()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    glfwTerminate();
 
 	return 0;
 }
