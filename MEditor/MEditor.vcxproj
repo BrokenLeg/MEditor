@@ -166,8 +166,14 @@
     <ClInclude Include="..\ThirdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\ThirdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="Callbacks.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="MakerVAO.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="ScreenParams.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture2D.h" />
+    <ClInclude Include="UserInterface.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="basic_fragment.shd" />
