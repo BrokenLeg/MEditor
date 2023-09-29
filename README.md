@@ -14,5 +14,7 @@ What's done
 2. Camera (position, front/up/right, fov)
 3. ImGui toolbar for renaming Mesh and editing it's transform
 
-![Screenshot_1](https://github.com/BrokenLeg/MEditor/assets/68334150/0ef720c6-ce61-4793-99b6-a2d20d09e693)
+![day1](https://github.com/BrokenLeg/MEditor/assets/68334150/d2ac3c62-2cbe-47f8-aa20-3621c982e4a5)
+
+
 
