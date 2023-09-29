@@ -78,13 +78,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\MEditor\ThirdParty\imgui;D:\MEditor\ThirdParty\stb_image;D:\MEditor\ThirdParty\opengl\include;D:\MEditor\ThirdParty\glmath;D:\MEditor\ThirdParty\glew\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\MEditor\ThirdParty\opengl\lib;D:\MEditor\ThirdParty\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\MEditor\ThirdParty\assimp\include;D:\MEditor\ThirdParty\imgui;D:\MEditor\ThirdParty\stb_image;D:\MEditor\ThirdParty\opengl\include;D:\MEditor\ThirdParty\glmath;D:\MEditor\ThirdParty\glew\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\MEditor\ThirdParty\assimp\lib\x64;D:\MEditor\ThirdParty\opengl\lib;D:\MEditor\ThirdParty\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>D:\MEditor\ThirdParty\imgui;D:\MEditor\ThirdParty\stb_image;D:\MEditor\ThirdParty\opengl\include;D:\MEditor\ThirdParty\glmath;D:\MEditor\ThirdParty\glew\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\MEditor\ThirdParty\opengl\lib;D:\MEditor\ThirdParty\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\MEditor\ThirdParty\assimp\include;D:\MEditor\ThirdParty\imgui;D:\MEditor\ThirdParty\stb_image;D:\MEditor\ThirdParty\opengl\include;D:\MEditor\ThirdParty\glmath;D:\MEditor\ThirdParty\glew\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\MEditor\ThirdParty\assimp\lib\x64;D:\MEditor\ThirdParty\opengl\lib;D:\MEditor\ThirdParty\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -124,7 +124,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;Gdi32.lib;User32.lib;Shell32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc143-mt.lib;opengl32.lib;glfw3.lib;Gdi32.lib;User32.lib;Shell32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +141,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;Gdi32.lib;User32.lib;Shell32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc143-mt.lib;opengl32.lib;glfw3.lib;Gdi32.lib;User32.lib;Shell32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

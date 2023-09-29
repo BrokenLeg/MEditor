@@ -10,9 +10,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "Shader.h"
 #include "Mesh.h"
@@ -21,6 +26,37 @@
 #include "Camera.h"
 #include "MakerVAO.h"
 #include "Callbacks.h"
+
+void loadMesh(aiMesh* mesh, Mesh& load)
+{
+	//for every Face i've got 3 indices -> total = mNumFaces * 3
+	unsigned int totalIndicesCount = mesh->mNumFaces * 3;
+	std::vector<unsigned int> fillIndices(totalIndicesCount);
+	//std::vector<unsigned int> edgesIndices;
+
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+		{
+			fillIndices[3 * i + j] = mesh->mFaces[i].mIndices[j];
+
+			//edgesIndices.push_back(mesh->mFaces[i].mIndices[j]);
+			//edgesIndices.push_back(mesh->mFaces[i].mIndices[(j + 1) % 3]);
+		}
+	}
+
+	unsigned int fillVAO = createVAO((float*)mesh->mVertices, sizeof(aiVector3D) * mesh->mNumVertices,
+		&fillIndices[0], sizeof(unsigned int) * totalIndicesCount);
+
+	//unsigned int edgesVAO = createVAO((float*)mesh->mVertices, sizeof(aiVector3D) * mesh->mNumVertices,
+	//	&edgesIndices[0], sizeof(unsigned int) * edgesIndices.size());
+
+	load.fillVAO = fillVAO;
+	load.fillIndicesCount = totalIndicesCount;
+	//loaded.edgesVAO = edgesVAO;
+	//loaded.edgesIndicesCount = edgesIndices.size();
+	strcpy_s(load.name, MAX_NAME_LENGTH, mesh->mName.C_Str());
+}
 
 int main()
 {
@@ -38,8 +74,12 @@ int main()
 	glewInit();
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(1.0, 1.0);
+
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetScrollCallback(window, scrollCallback);
+
 	glfwSetWindowPos(window, 40, 40);
 	glViewport(0, 0, DRAW_SECTION_WIDTH, SCREEN_HEIGHT);
 
@@ -51,14 +91,7 @@ int main()
 
 	initImGui(window);
 
-	//Init mesh
-	Mesh cube{};
-	cube.fillColor = { 1.0f, 0.5f, 0.2f };
-	cube.edgesColor = { 1.0f, 1.0f, 1.0f };
-	cube.scale = { 1.0f, 1.0f, 1.0f };
-	createCubeVAO(cube);
-	strcpy_s(cube.name, 20, "Cube");
-
+	//Init point
 	POINT_VAO = createPointVAO();
 
 	//Init camera
@@ -74,19 +107,38 @@ int main()
 
 	Shader basicShader("basic_vertex.shd", "basic_fragment.shd");
 
+	Assimp::Importer imp;
+	const aiScene* scene = imp.ReadFile("resources/backpack.obj", aiProcess_Triangulate);
+	std::vector<Mesh> meshes(scene->mNumMeshes);
+
+	for (int i = 0; i < scene->mNumMeshes; i++)
+	{
+		meshes[i] = {};
+		meshes[i].fillColor = { 0.5f, 0.5f, 0.5f };
+		meshes[i].edgesColor = { 1.0f, 1.0f, 1.0f };
+		meshes[i].scale = { 1.0f, 1.0f, 1.0f };
+		loadMesh(scene->mMeshes[i], meshes[i]);
+	}
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		basicShader.Use();
-
-		basicShader.SetMatrix4("model", getModelMatrix(cube));
+		//don't have scene graph and local trf yet
+		basicShader.SetMatrix4("model", getModelMatrix(meshes[0]));
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
-		drawMesh(cube, basicShader, true, false);
-		drawUI(cube);
+		for (int i = 0; i < scene->mNumMeshes; i++)
+		{
+			drawMesh(meshes[i], basicShader, false, false);
+		}
+
+		drawUI(meshes[0]);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
