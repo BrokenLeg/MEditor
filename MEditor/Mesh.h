@@ -49,6 +49,7 @@ void drawMesh(const Mesh& mesh, Shader& shader, bool edges, bool center)
 {
 	glBindVertexArray(mesh.fillVAO);
 	shader.SetVector3f("color", mesh.fillColor);
+	shader.SetMatrix4("model", getModelMatrix(mesh));
 	glDrawElements(GL_TRIANGLES, mesh.fillIndicesCount, GL_UNSIGNED_INT, 0);
 
 	if (edges)

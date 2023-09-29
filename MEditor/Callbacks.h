@@ -5,7 +5,7 @@
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (action == GLFW_RELEASE)
+	//if (action == GLFW_RELEASE)
 	{
 		return;
 	}
@@ -34,16 +34,3 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	}
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
-
-	if (yoffset < 0)
-	{
-		camera->position -= camera->front * 0.1f;
-	}
-	else
-	{
-		camera->position += camera->front * 0.1f;
-	}
-}

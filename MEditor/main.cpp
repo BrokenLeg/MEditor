@@ -27,6 +27,39 @@
 #include "MakerVAO.h"
 #include "Callbacks.h"
 
+bool insideUI = false;
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (xpos > DRAW_SECTION_WIDTH)
+	{
+		insideUI = true;
+	}
+	else
+	{
+		insideUI = false;
+	}
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (insideUI)
+	{
+		return;
+	}
+
+	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
+
+	if (yoffset < 0)
+	{
+		camera->position -= camera->front * 0.1f;
+	}
+	else
+	{
+		camera->position += camera->front * 0.1f;
+	}
+}
+
 void loadMesh(aiMesh* mesh, Mesh& load)
 {
 	//for every Face i've got 3 indices -> total = mNumFaces * 3
@@ -77,6 +110,7 @@ int main()
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(1.0, 1.0);
 
+	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetScrollCallback(window, scrollCallback);
 
@@ -121,6 +155,7 @@ int main()
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	int selectedMesh = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -128,8 +163,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		basicShader.Use();
+
 		//don't have scene graph and local trf yet
-		basicShader.SetMatrix4("model", getModelMatrix(meshes[0]));
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
@@ -138,7 +173,10 @@ int main()
 			drawMesh(meshes[i], basicShader, false, false);
 		}
 
-		drawUI(meshes[0]);
+		beginDraw();
+		drawSceneGraph(&meshes[0], scene->mNumMeshes, selectedMesh);
+		drawProperties(meshes[selectedMesh]);
+		render();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

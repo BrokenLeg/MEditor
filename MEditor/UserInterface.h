@@ -25,12 +25,21 @@ void shutdownImGui()
 	ImGui::DestroyContext();
 }
 
-void drawUI(Mesh& selectedMesh)
+void beginDraw()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+}
 
+void render()
+{
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void drawSceneGraph(const Mesh* meshes, unsigned int meshesCount, int& selectedMeshIndex)
+{
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("SceneGraph", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 	ImGui::SetWindowPos({ DRAW_SECTION_WIDTH, 0 });
@@ -39,10 +48,21 @@ void drawUI(Mesh& selectedMesh)
 	ImGui::SetCursorPos({ 10, 20 });
 
 	ImGui::SetWindowFontScale(1.5);
-	ImGui::Text(selectedMesh.name);
+
+	std::vector<const char*> names(meshesCount);
+	for (int i = 0; i < meshesCount; i++)
+	{
+		names[i] = meshes[i].name;
+	}
+
+	ImGui::ListBox("##names", &selectedMeshIndex, &names[0], meshesCount, 15);
 
 	ImGui::End();
+}
 
+void drawProperties(Mesh& selectedMesh)
+{
+	bool imGuiWindowIsClosed;
 	ImGui::Begin("Properties", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 	ImGui::SetWindowPos({ DRAW_SECTION_WIDTH, SCREEN_HEIGHT / 2 });
 	ImGui::SetWindowSize({ SCREEN_WIDTH - DRAW_SECTION_WIDTH, SCREEN_HEIGHT / 2 });
@@ -81,7 +101,4 @@ void drawUI(Mesh& selectedMesh)
 	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##scl", &selectedMesh.scale.y, 0.05f);
 	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##scl", &selectedMesh.scale.z, 0.05f);
 	ImGui::End();
-
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
