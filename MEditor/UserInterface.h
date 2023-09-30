@@ -85,7 +85,7 @@ void drawSceneGraph(aiNode* root, aiNode*& selectedNode)
 	ImGui::End();
 }
 
-void drawProperties(Mesh& selectedMesh)
+void drawProperties(aiNode* selectedNode, Mesh& selectedMesh, bool root=false)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("Properties", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -94,7 +94,17 @@ void drawProperties(Mesh& selectedMesh)
 
 	ImGui::SetWindowFontScale(1.5);
 
-	ImGui::InputText("Name", selectedMesh.name, 20);
+	if (root)
+	{
+		ImGui::Text("Root");
+	}
+	else
+	{
+		char name[50];
+		strcpy_s(name, 50, selectedNode->mName.C_Str());
+		ImGui::InputText("Name", name, 20);
+		selectedNode->mName = name;
+	}
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
 	ImGui::Text("Transform");

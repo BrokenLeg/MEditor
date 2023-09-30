@@ -192,8 +192,6 @@ int main()
 	root->mName = "Root";
 	aiNode* selectedNode = nullptr;
 
-	
-
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -207,11 +205,6 @@ int main()
 
 		drawNode(root, getModelMatrix(meshes[scene->mNumMeshes]), &meshes[0], basicShader);
 
-		for (int i = 0; i < scene->mNumMeshes; i++)
-		{
-			//drawMesh(meshes[i], basicShader, glm::mat4(1.0f), false, false);
-		}
-
 		beginDraw();
 		drawSceneGraph(root, selectedNode);
 
@@ -219,11 +212,11 @@ int main()
 		{
 			if (selectedNode == root)
 			{
-				drawProperties(meshes[scene->mNumMeshes]);
+				drawProperties(selectedNode, meshes[scene->mNumMeshes], true);
 			}
 			else
 			{
-				drawProperties(meshes[selectedNode->mMeshes[0]]);
+				drawProperties(selectedNode, meshes[selectedNode->mMeshes[0]]);
 			}
 		}
 		
