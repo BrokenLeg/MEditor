@@ -21,6 +21,7 @@ struct Mesh
 	glm::vec3 edgesColor;
 
 	char name[MAX_NAME_LENGTH];
+
 	unsigned int fillVAO;
 	unsigned int edgesVAO;
 	unsigned int fillIndicesCount;
@@ -45,11 +46,11 @@ glm::mat4 getModelMatrix(const Mesh& mesh)
 	return translate * rotate * scale;
 }
 
-void drawMesh(const Mesh& mesh, Shader& shader, bool edges, bool center)
+void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, bool edges, bool center)
 {
 	glBindVertexArray(mesh.fillVAO);
 	shader.SetVector3f("color", mesh.fillColor);
-	shader.SetMatrix4("model", getModelMatrix(mesh));
+	shader.SetMatrix4("model", trf);
 	glDrawElements(GL_TRIANGLES, mesh.fillIndicesCount, GL_UNSIGNED_INT, 0);
 
 	if (edges)

@@ -88,7 +88,35 @@ void loadMesh(aiMesh* mesh, Mesh& load)
 	load.fillIndicesCount = totalIndicesCount;
 	//loaded.edgesVAO = edgesVAO;
 	//loaded.edgesIndicesCount = edgesIndices.size();
-	strcpy_s(load.name, MAX_NAME_LENGTH, mesh->mName.C_Str());
+	//strcpy_s(load.name, MAX_NAME_LENGTH, mesh->mName.C_Str());
+}
+
+inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from)
+{
+	glm::mat4 to;
+
+	to[0][0] = (GLfloat)from->a1; to[0][1] = (GLfloat)from->b1;  to[0][2] = (GLfloat)from->c1; to[0][3] = (GLfloat)from->d1;
+	to[1][0] = (GLfloat)from->a2; to[1][1] = (GLfloat)from->b2;  to[1][2] = (GLfloat)from->c2; to[1][3] = (GLfloat)from->d2;
+	to[2][0] = (GLfloat)from->a3; to[2][1] = (GLfloat)from->b3;  to[2][2] = (GLfloat)from->c3; to[2][3] = (GLfloat)from->d3;
+	to[3][0] = (GLfloat)from->a4; to[3][1] = (GLfloat)from->b4;  to[3][2] = (GLfloat)from->c4; to[3][3] = (GLfloat)from->d4;
+
+	return to;
+}
+
+void drawNode(aiNode* node, const glm::mat4& parentTransform,  Mesh* globalMeshes, Shader& shader)
+{
+	glm::mat4 trf = parentTransform;
+
+	if (node->mNumMeshes)
+	{
+		trf = getModelMatrix(globalMeshes[node->mMeshes[0]]) * trf;
+		drawMesh(globalMeshes[node->mMeshes[0]], shader, trf, false, false);
+	}
+
+	for (int i = 0; i < node->mNumChildren; i++)
+	{
+		drawNode(node->mChildren[i], trf, globalMeshes, shader);
+	}
 }
 
 int main()
@@ -99,7 +127,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "MEditate", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
@@ -113,7 +141,7 @@ int main()
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetScrollCallback(window, scrollCallback);
-
+	
 	glfwSetWindowPos(window, 40, 40);
 	glViewport(0, 0, DRAW_SECTION_WIDTH, SCREEN_HEIGHT);
 
@@ -124,7 +152,6 @@ int main()
 	stbi_image_free(image.pixels);
 
 	initImGui(window);
-
 	//Init point
 	POINT_VAO = createPointVAO();
 
@@ -135,14 +162,14 @@ int main()
 	camera.up = { 0.0f, 1.0f, 0.0f };
 	camera.right = { 1.0f, 0.0f, 0.0f };
 	camera.fov = 80.0f;
-
-	//reachable in callbacks
 	glfwSetWindowUserPointer(window, &camera);
+	//reachable in callbacks
+	
 
 	Shader basicShader("basic_vertex.shd", "basic_fragment.shd");
 
 	Assimp::Importer imp;
-	const aiScene* scene = imp.ReadFile("resources/backpack.obj", aiProcess_Triangulate);
+	const aiScene* scene = imp.ReadFile("resources/back.dae", aiProcess_Triangulate);
 	std::vector<Mesh> meshes(scene->mNumMeshes);
 
 	for (int i = 0; i < scene->mNumMeshes; i++)
@@ -154,8 +181,18 @@ int main()
 		loadMesh(scene->mMeshes[i], meshes[i]);
 	}
 
+	Mesh rootMesh{};
+	rootMesh.scale = {1, 1, 1};
+	meshes.push_back(rootMesh);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	int selectedMesh = 0;
+
+	aiNode* root = scene->mRootNode;
+	root->mName = "Root";
+	aiNode* selectedNode = nullptr;
+
+	
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -168,14 +205,28 @@ int main()
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
+		drawNode(root, getModelMatrix(meshes[scene->mNumMeshes]), &meshes[0], basicShader);
+
 		for (int i = 0; i < scene->mNumMeshes; i++)
 		{
-			drawMesh(meshes[i], basicShader, false, false);
+			//drawMesh(meshes[i], basicShader, glm::mat4(1.0f), false, false);
 		}
 
 		beginDraw();
-		drawSceneGraph(&meshes[0], scene->mNumMeshes, selectedMesh);
-		drawProperties(meshes[selectedMesh]);
+		drawSceneGraph(root, selectedNode);
+
+		if (selectedNode)
+		{
+			if (selectedNode == root)
+			{
+				drawProperties(meshes[scene->mNumMeshes]);
+			}
+			else
+			{
+				drawProperties(meshes[selectedNode->mMeshes[0]]);
+			}
+		}
+		
 		render();
 
 		glfwSwapBuffers(window);

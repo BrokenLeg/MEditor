@@ -8,6 +8,12 @@
 #include "Mesh.h"
 #include "ScreenParams.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <iostream>
+
 void initImGui(GLFWwindow* window)
 {
 	IMGUI_CHECKVERSION();
@@ -38,7 +44,32 @@ void render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void drawSceneGraph(const Mesh* meshes, unsigned int meshesCount, int& selectedMeshIndex)
+void drawNode(aiNode* node, aiNode* &selectedNode)
+{
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+	if (node == selectedNode)
+	{
+		flags = ImGuiTreeNodeFlags_Selected;
+	}
+
+	if (ImGui::TreeNodeEx(node->mName.C_Str(), flags))
+	{
+		if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen())
+		{
+			std::cout << "SELECTED " << node->mName.C_Str() << std::endl;
+			selectedNode = node;
+		}
+
+		for (int i = 0; i < node->mNumChildren; i++)
+		{
+			drawNode(node->mChildren[i], selectedNode);
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void drawSceneGraph(aiNode* root, aiNode*& selectedNode)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("SceneGraph", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -49,14 +80,8 @@ void drawSceneGraph(const Mesh* meshes, unsigned int meshesCount, int& selectedM
 
 	ImGui::SetWindowFontScale(1.5);
 
-	std::vector<const char*> names(meshesCount);
-	for (int i = 0; i < meshesCount; i++)
-	{
-		names[i] = meshes[i].name;
-	}
-
-	ImGui::ListBox("##names", &selectedMeshIndex, &names[0], meshesCount, 15);
-
+	drawNode(root, selectedNode);
+	
 	ImGui::End();
 }
 
