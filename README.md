@@ -22,7 +22,8 @@ Added
 1. Model loading (.dae preffered as it preserves hierarchy)
 2. Scene hierarchy window - can select node and modify it's local transformation
 
-![day 2-3](https://github.com/BrokenLeg/MEditor/assets/68334150/c853cb6c-3349-491c-b230-da5b9afe3065)
+![day 2-3](https://github.com/BrokenLeg/MEditor/assets/68334150/592eee23-d19e-4850-9c89-09c4d31d6e31)
+
 
 
 
