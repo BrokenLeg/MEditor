@@ -63,9 +63,23 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 void loadMesh(aiMesh* mesh, Mesh& load)
 {
 	//for every Face i've got 3 indices -> total = mNumFaces * 3
+	unsigned int vboParamsCount = mesh->mNumVertices * (3 + 3);
+	std::vector<float> vertices(vboParamsCount);
+	
+	for (int i = 0; i < mesh->mNumVertices; i++)
+	{
+		aiVector3D position = mesh->mVertices[i];
+		aiVector3D normal = mesh->mNormals[i];
+		vertices[6 * i]		= position.x;
+		vertices[6 * i + 1] = position.y;
+		vertices[6 * i + 2] = position.z;
+		vertices[6 * i + 3] = normal.x;
+		vertices[6 * i + 4] = normal.y;
+		vertices[6 * i + 5] = normal.z;
+	}
+
 	unsigned int totalIndicesCount = mesh->mNumFaces * 3;
 	std::vector<unsigned int> fillIndices(totalIndicesCount);
-	//std::vector<unsigned int> edgesIndices;
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 	{
@@ -78,7 +92,7 @@ void loadMesh(aiMesh* mesh, Mesh& load)
 		}
 	}
 
-	unsigned int fillVAO = createVAO((float*)mesh->mVertices, sizeof(aiVector3D) * mesh->mNumVertices,
+	unsigned int fillVAO = createVAO(&vertices[0], 6 * sizeof(float) * mesh->mNumVertices,
 		&fillIndices[0], sizeof(unsigned int) * totalIndicesCount);
 
 	//unsigned int edgesVAO = createVAO((float*)mesh->mVertices, sizeof(aiVector3D) * mesh->mNumVertices,
@@ -185,12 +199,15 @@ int main()
 	rootMesh.scale = {1, 1, 1};
 	meshes.push_back(rootMesh);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	int selectedMesh = 0;
 
 	aiNode* root = scene->mRootNode;
 	root->mName = "Root";
 	aiNode* selectedNode = nullptr;
+
+	basicShader.Use();
+	basicShader.SetVector3f("lightPos", {0.0f, -2.0f, -1.0f});
 
 	while (!glfwWindowShouldClose(window))
 	{
