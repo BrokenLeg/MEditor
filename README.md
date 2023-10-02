@@ -22,7 +22,7 @@ Added
 1. Model loading (.dae preffered as it preserves hierarchy)
 2. Scene hierarchy window - can select node and modify it's local transformation
 
-![day 2-3](https://github.com/BrokenLeg/MEditor/assets/68334150/592eee23-d19e-4850-9c89-09c4d31d6e31)
+![day 2-3](https://github.com/BrokenLeg/MEditor/assets/68334150/85877ddc-6ee3-4bbd-b9b4-6ee6a463fa89)
 
 # Day 4-5
 
@@ -31,7 +31,7 @@ Added
 2. Transform component
 3. Rotation around world axis using WS-AD-QE
 
-![day4-5](https://github.com/BrokenLeg/MEditor/assets/68334150/5988b348-e808-4bc0-becc-ffa101eb6ee6)
+![day4-5](https://github.com/BrokenLeg/MEditor/assets/68334150/ac3c9ab6-7ec8-4ac9-99a3-1d51b75d14cd)
 
 
 
