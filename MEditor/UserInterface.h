@@ -85,7 +85,7 @@ void drawSceneGraph(aiNode* root, aiNode*& selectedNode)
 	ImGui::End();
 }
 
-void drawProperties(aiNode* selectedNode, Mesh& selectedMesh, bool root=false)
+void drawProperties(aiNode* selectedNode, Transform& trf, bool root=false)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("Properties", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -114,26 +114,26 @@ void drawProperties(aiNode* selectedNode, Mesh& selectedMesh, bool root=false)
 	ImGui::Text("Location"); ImGui::SameLine();
 	float xOffset = ImGui::GetCursorPosX();
 
-	ImGui::DragFloat("X##pos", &selectedMesh.position.x, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##pos", &selectedMesh.position.y, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##pos", &selectedMesh.position.z, 0.05f);
+	ImGui::DragFloat("X##pos", &trf.position.x, 0.05f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##pos", &trf.position.y, 0.05f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##pos", &trf.position.z, 0.05f);
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
 	//Rotate
 	ImGui::Text("Rotation"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
 
-	ImGui::DragFloat("X##rot", &selectedMesh.rotation.x, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##rot", &selectedMesh.rotation.y, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##rot", &selectedMesh.rotation.z, 0.05f);
+	ImGui::DragFloat("X##rot", &trf.orientation.x, 1.0f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##rot", &trf.orientation.y, 1.0f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##rot", &trf.orientation.z, 1.0f);
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
 	//Scale
 	ImGui::Text("Scale"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
 
-	ImGui::DragFloat("X##scl", &selectedMesh.scale.x, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##scl", &selectedMesh.scale.y, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##scl", &selectedMesh.scale.z, 0.05f);
+	ImGui::DragFloat("X##scl", &trf.scale.x, 0.05f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##scl", &trf.scale.y, 0.05f);
+	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##scl", &trf.scale.z, 0.05f);
 	ImGui::End();
 }

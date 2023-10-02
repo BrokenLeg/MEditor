@@ -170,6 +170,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="MakerVAO.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="ScreenParams.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture2D.h" />

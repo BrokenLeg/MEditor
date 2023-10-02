@@ -27,7 +27,75 @@
 #include "MakerVAO.h"
 #include "Callbacks.h"
 
+#include "Node.h"
+
 bool insideUI = false;
+aiNode* selectedNode = nullptr;
+aiNode* root;
+std::vector<Mesh> meshes;
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (selectedNode == nullptr)
+	{
+		return;
+	}
+
+	if (action == GLFW_RELEASE)
+	{
+		return;
+	}
+
+	float angle = 0.0f;
+	glm::vec3 axis{};
+
+	if (key == GLFW_KEY_A)
+	{
+		angle = 3.0f;
+		axis = { 0, 1, 0 };
+	}
+
+	if (key == GLFW_KEY_D)
+	{
+		axis = { 0, 1, 0 };
+		angle = -3.0f;
+	}
+
+	if (key == GLFW_KEY_W)
+	{
+		angle = 3.0f;
+		axis = { 1, 0, 0 };
+	}
+
+	if (key == GLFW_KEY_S)
+	{
+		axis = { 1, 0, 0 };
+		angle = -3.0f;
+	}
+
+	if (key == GLFW_KEY_Q)
+	{
+		angle = -3.0f;
+		axis = { 0, 0, 1 };
+	}
+
+	if (key == GLFW_KEY_E)
+	{
+		axis = { 0, 0, 1 };
+		angle = 3.0f;
+	}
+
+	if (selectedNode->mNumMeshes)
+	{
+		applyGlobalRotation(meshes[selectedNode->mMeshes[0]].trf, axis, angle);
+	}
+	else
+	{
+		applyGlobalRotation(meshes[meshes.size() - 1].trf, axis, angle);
+	}
+}
+
+
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -105,6 +173,47 @@ void loadMesh(aiMesh* mesh, Mesh& load)
 	//strcpy_s(load.name, MAX_NAME_LENGTH, mesh->mName.C_Str());
 }
 
+void extractTransform(Transform& trf, const glm::mat4& mat4)
+{
+	glm::vec3 translate = mat4[3];
+	
+	glm::vec3 first = mat4[0];
+	glm::vec3 second = mat4[1];
+	glm::vec3 third = mat4[2];
+	
+	float scaleX = glm::length(first);
+	float scaleY = glm::length(second);
+	float scaleZ = glm::length(third);
+
+	glm::vec3 scale = {scaleX, scaleY, scaleZ};
+
+	first  = first  / scaleX;
+	second = second / scaleY;
+	third  = third  / scaleZ;
+}
+
+void loadScene(aiNode* root, Node*& load)
+{
+	strcpy_s(load->name, 50, root->mName.C_Str());
+	
+
+	if (root->mNumMeshes)
+	{
+		load->type = MESH;
+		load->resourceIndex = root->mMeshes[0];
+	}
+	else
+	{
+		load->type = NONE;
+	}
+
+	load->children.reserve(root->mNumChildren);
+	for (int i = 0; i < root->mNumChildren; i++)
+	{
+		loadScene(root->mChildren[i], load->children[i]);
+	}
+}
+
 inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from)
 {
 	glm::mat4 to;
@@ -123,7 +232,7 @@ void drawNode(aiNode* node, const glm::mat4& parentTransform,  Mesh* globalMeshe
 
 	if (node->mNumMeshes)
 	{
-		trf = getModelMatrix(globalMeshes[node->mMeshes[0]]) * trf;
+		trf = getModelMatrix(globalMeshes[node->mMeshes[0]].trf) * trf;
 		drawMesh(globalMeshes[node->mMeshes[0]], shader, trf, false, false);
 	}
 
@@ -179,35 +288,37 @@ int main()
 	glfwSetWindowUserPointer(window, &camera);
 	//reachable in callbacks
 	
-
 	Shader basicShader("basic_vertex.shd", "basic_fragment.shd");
 
 	Assimp::Importer imp;
 	const aiScene* scene = imp.ReadFile("resources/back.dae", aiProcess_Triangulate);
-	std::vector<Mesh> meshes(scene->mNumMeshes);
+	meshes.resize(scene->mNumMeshes);
 
 	for (int i = 0; i < scene->mNumMeshes; i++)
 	{
 		meshes[i] = {};
 		meshes[i].fillColor = { 0.5f, 0.5f, 0.5f };
 		meshes[i].edgesColor = { 1.0f, 1.0f, 1.0f };
-		meshes[i].scale = { 1.0f, 1.0f, 1.0f };
+		meshes[i].trf.scale = { 1.0f, 1.0f, 1.0f };
 		loadMesh(scene->mMeshes[i], meshes[i]);
 	}
 
 	Mesh rootMesh{};
-	rootMesh.scale = {1, 1, 1};
+	rootMesh.trf.scale = { 1.0f, 1.0f, 1.0f };
 	meshes.push_back(rootMesh);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	int selectedMesh = 0;
+	//int selectedMesh = 0;
 
-	aiNode* root = scene->mRootNode;
+	root = scene->mRootNode;
 	root->mName = "Root";
-	aiNode* selectedNode = nullptr;
 
 	basicShader.Use();
 	basicShader.SetVector3f("lightPos", {0.0f, -2.0f, -1.0f});
+
+	//imp.FreeScene();
+	//need to move scene to my tree-struct to be able to modify
+	//need to call freeScene() not to use extra memory
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -220,7 +331,7 @@ int main()
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
-		drawNode(root, getModelMatrix(meshes[scene->mNumMeshes]), &meshes[0], basicShader);
+		drawNode(root, getModelMatrix(meshes[scene->mNumMeshes].trf), &meshes[0], basicShader);
 
 		beginDraw();
 		drawSceneGraph(root, selectedNode);
@@ -229,11 +340,11 @@ int main()
 		{
 			if (selectedNode == root)
 			{
-				drawProperties(selectedNode, meshes[scene->mNumMeshes], true);
+				drawProperties(selectedNode, meshes[scene->mNumMeshes].trf, true);
 			}
 			else
 			{
-				drawProperties(selectedNode, meshes[selectedNode->mMeshes[0]]);
+				drawProperties(selectedNode, meshes[selectedNode->mMeshes[0]].trf);
 			}
 		}
 		
