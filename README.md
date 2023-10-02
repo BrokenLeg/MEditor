@@ -24,6 +24,14 @@ Added
 
 ![day 2-3](https://github.com/BrokenLeg/MEditor/assets/68334150/592eee23-d19e-4850-9c89-09c4d31d6e31)
 
+# Day 4-5
+
+Added
+1. Basic ambient and diffuse lighting (no wireframe)
+2. Transform component
+3. Rotation around world axis using WS-AD-QE
+
+![day4-5](https://github.com/BrokenLeg/MEditor/assets/68334150/5988b348-e808-4bc0-becc-ffa101eb6ee6)
 
 
 
