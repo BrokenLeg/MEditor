@@ -33,6 +33,17 @@ Added
 
 ![day4-5](https://github.com/BrokenLeg/MEditor/assets/68334150/ac3c9ab6-7ec8-4ac9-99a3-1d51b75d14cd)
 
+# Day 6
+
+Added
+1. Light and Material
+2. Editiong of Light and Material in ImGui tabs
+3. More flexible scene, can add lights as nodes, not all nodes contain meshes
+
+![day 6-7](https://github.com/BrokenLeg/MEditor/assets/68334150/481044a1-6563-4715-b76c-5bc443181927)
+
+
+
 
 
 
