@@ -323,6 +323,7 @@ int main()
 		//don't have scene graph and local trf yet
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
+		basicShader.SetVector3f("viewPos", camera.position);
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
