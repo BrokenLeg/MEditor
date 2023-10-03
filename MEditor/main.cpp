@@ -28,6 +28,8 @@
 #include "Callbacks.h"
 
 #include "Node.h"
+#include "Light.h"
+#include "Material.h"
 
 bool insideUI = false;
 aiNode* selectedNode = nullptr;
@@ -37,6 +39,7 @@ Node* mselectedNode = nullptr;
 Node* mroot;
 
 std::vector<Mesh> meshes;
+std::vector<Material> materials;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -165,7 +168,6 @@ void loadMesh(aiMesh* mesh, Mesh& load)
 
 void loadScene(aiNode* root, Node*& load)
 {
-	//load->transform.scale = {1, 1, 1};
 	strcpy_s(load->name, 50, root->mName.C_Str());
 
 	if (root->mNumMeshes)
@@ -212,14 +214,15 @@ void drawNode(Node* node, const glm::mat4& parentTransform,  Mesh* globalMeshes,
 	if (node->type == MESH)
 	{
 		trf = trf * getModelMatrix(node->transform);
-		
+		Mesh& mesh = globalMeshes[node->resourceIndex];
+
 		if (outline)
 		{
-			drawMesh(globalMeshes[node->resourceIndex], shader, trf * glm::scale(glm::mat4(1.0f), { 1.01f, 1.01f, 1.01f }), false, false, outline);
+			drawMesh(mesh, shader, trf * glm::scale(glm::mat4(1.0f), { 1.01f, 1.01f, 1.01f }), materials[mesh.materialIndex], false, false, outline);
 		}
 		else
 		{
-			drawMesh(globalMeshes[node->resourceIndex], shader, trf, false, false, outline);
+			drawMesh(mesh, shader, trf, materials[mesh.materialIndex], false, false, outline);
 		}
 		
 	}
@@ -295,16 +298,30 @@ int main()
 	}
 
 	basicShader.Use();
-	basicShader.SetVector3f("lightPos", {0.0f, -2.0f, -1.0f});
-	
+
+	Light globalLight{};
+	glm::vec3 pos = { 0.0f, -2.0f, -1.0f };
+	globalLight.ambient = {0.2f, 0.2f, 0.2f};
+	globalLight.diffuse = {0.5f, 0.5f, 0.5f};
+	globalLight.specular = {1.0f, 1.0f, 1.0f};
+
+	basicShader.SetVector3f("l.pos", pos);
+	basicShader.SetVector3f("l.amb", globalLight.ambient);
+	basicShader.SetVector3f("l.dif", globalLight.diffuse);
+	basicShader.SetVector3f("l.spec", globalLight.specular);
+
+	Material globalMaterial{};
+	globalMaterial.ambient = { 1.0f, 0.5f, 0.31f };
+	globalMaterial.diffuse = { 1.0f, 0.5f, 0.31f };
+	globalMaterial.specular = { 0.5f, 0.5f, 0.5f };
+	materials.push_back(globalMaterial);
+	materials.push_back(globalMaterial); materials.push_back(globalMaterial); materials.push_back(globalMaterial);
 	root = scene->mRootNode;
 	root->mName = "Root";
 	
 	mroot = new Node;
-	//mroot->type = MESH;
 	mroot->transform = {};
 	mroot->transform.scale = { 1, 1, 1 };
-	mroot->resourceIndex = meshes.size() - 1;
 	loadScene(root, mroot);
 
 	imp.FreeScene();
@@ -336,7 +353,7 @@ int main()
 		outliningShader.Use();
 		outliningShader.SetMatrix4("view", getViewMatrix(camera));
 		outliningShader.SetMatrix4("proj", getProjectionMatrix(camera));
-		drawNode(mroot, getModelMatrix(mroot->transform), &meshes[0], outliningShader, true);
+		//drawNode(mroot, getModelMatrix(mroot->transform), &meshes[0], outliningShader, true);
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glEnable(GL_DEPTH_TEST);
@@ -346,7 +363,14 @@ int main()
 
 		if (mselectedNode)
 		{
-			drawProperties(mselectedNode, mselectedNode->transform);
+			int* index = nullptr;
+
+			if (mselectedNode->type == MESH)
+			{
+				Mesh& mesh = meshes[mselectedNode->resourceIndex];
+				index = &mesh.materialIndex;
+			}
+			drawProperties(mselectedNode, &mselectedNode->transform, &materials[0], index, materials.size() - 1);
 		}
 
 		render();

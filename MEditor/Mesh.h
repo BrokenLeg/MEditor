@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
+#include "Material.h"
 
 unsigned int POINT_VAO;
 const glm::vec3 WHITE_COLOR = { 1.0f, 1.0f, 1.0f };
@@ -29,6 +30,7 @@ struct Transform
 
 struct Mesh
 {
+	int materialIndex;
 	glm::vec3 fillColor; //move to materials
 	unsigned int fillVAO;
 	unsigned int fillIndicesCount;
@@ -75,14 +77,17 @@ glm::mat4 getModelMatrix(const Transform& trf)
 	return translate * getRotationMatrixZYX(trf.orientation) * scale;
 }
 
-void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, bool edges, bool center, bool outline)
+void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, const Material& mat, bool edges, bool center, bool outline)
 {
 	glBindVertexArray(mesh.fillVAO);
+
 	if (!outline)
 	{
-		shader.SetVector3f("color", mesh.fillColor);
+		shader.SetVector3f("m.amb", mat.ambient);
+		shader.SetVector3f("m.dif", mat.diffuse);
+		shader.SetVector3f("m.spec", mat.specular);
 	}
-	
+
 	shader.SetMatrix4("model", trf);
 	glDrawElements(GL_TRIANGLES, mesh.fillIndicesCount, GL_UNSIGNED_INT, 0);
 
