@@ -29,17 +29,9 @@ struct Transform
 
 struct Mesh
 {
-	Transform trf;
-
 	glm::vec3 fillColor; //move to materials
-	glm::vec3 edgesColor;
-
-	char name[MAX_NAME_LENGTH];
-
 	unsigned int fillVAO;
-	unsigned int edgesVAO;
 	unsigned int fillIndicesCount;
-	unsigned int edgesIndicesCount;
 };
 
 glm::vec3 getEulerFromMatrix(const glm::mat4& R)
@@ -83,20 +75,16 @@ glm::mat4 getModelMatrix(const Transform& trf)
 	return translate * getRotationMatrixZYX(trf.orientation) * scale;
 }
 
-void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, bool edges, bool center)
+void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, bool edges, bool center, bool outline)
 {
 	glBindVertexArray(mesh.fillVAO);
-	shader.SetVector3f("color", mesh.fillColor);
+	if (!outline)
+	{
+		shader.SetVector3f("color", mesh.fillColor);
+	}
+	
 	shader.SetMatrix4("model", trf);
 	glDrawElements(GL_TRIANGLES, mesh.fillIndicesCount, GL_UNSIGNED_INT, 0);
-
-	if (edges)
-	{
-		glBindVertexArray(mesh.edgesVAO);
-		shader.SetVector3f("color", mesh.edgesColor);
-		glLineWidth(1.0f);
-		glDrawElements(GL_LINES, mesh.edgesIndicesCount, GL_UNSIGNED_INT, 0);
-	}
 
 	if (center)
 	{

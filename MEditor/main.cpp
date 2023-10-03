@@ -32,11 +32,15 @@
 bool insideUI = false;
 aiNode* selectedNode = nullptr;
 aiNode* root;
+
+Node* mselectedNode = nullptr;
+Node* mroot;
+
 std::vector<Mesh> meshes;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (selectedNode == nullptr)
+	if (mselectedNode == nullptr)
 	{
 		return;
 	}
@@ -63,14 +67,14 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 	if (key == GLFW_KEY_W)
 	{
-		angle = 3.0f;
+		angle = -3.0f;
 		axis = { 1, 0, 0 };
 	}
 
 	if (key == GLFW_KEY_S)
 	{
 		axis = { 1, 0, 0 };
-		angle = -3.0f;
+		angle = 3.0f;
 	}
 
 	if (key == GLFW_KEY_Q)
@@ -85,17 +89,13 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		angle = 3.0f;
 	}
 
-	if (selectedNode->mNumMeshes)
+	if (angle == 0.0f)
 	{
-		applyGlobalRotation(meshes[selectedNode->mMeshes[0]].trf, axis, angle);
+		return;
 	}
-	else
-	{
-		applyGlobalRotation(meshes[meshes.size() - 1].trf, axis, angle);
-	}
+
+	applyGlobalRotation(mselectedNode->transform, axis, angle);
 }
-
-
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -130,7 +130,6 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 
 void loadMesh(aiMesh* mesh, Mesh& load)
 {
-	//for every Face i've got 3 indices -> total = mNumFaces * 3
 	unsigned int vboParamsCount = mesh->mNumVertices * (3 + 3);
 	std::vector<float> vertices(vboParamsCount);
 	
@@ -154,48 +153,20 @@ void loadMesh(aiMesh* mesh, Mesh& load)
 		for (unsigned int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
 		{
 			fillIndices[3 * i + j] = mesh->mFaces[i].mIndices[j];
-
-			//edgesIndices.push_back(mesh->mFaces[i].mIndices[j]);
-			//edgesIndices.push_back(mesh->mFaces[i].mIndices[(j + 1) % 3]);
 		}
 	}
 
 	unsigned int fillVAO = createVAO(&vertices[0], 6 * sizeof(float) * mesh->mNumVertices,
 		&fillIndices[0], sizeof(unsigned int) * totalIndicesCount);
 
-	//unsigned int edgesVAO = createVAO((float*)mesh->mVertices, sizeof(aiVector3D) * mesh->mNumVertices,
-	//	&edgesIndices[0], sizeof(unsigned int) * edgesIndices.size());
-
 	load.fillVAO = fillVAO;
 	load.fillIndicesCount = totalIndicesCount;
-	//loaded.edgesVAO = edgesVAO;
-	//loaded.edgesIndicesCount = edgesIndices.size();
-	//strcpy_s(load.name, MAX_NAME_LENGTH, mesh->mName.C_Str());
-}
-
-void extractTransform(Transform& trf, const glm::mat4& mat4)
-{
-	glm::vec3 translate = mat4[3];
-	
-	glm::vec3 first = mat4[0];
-	glm::vec3 second = mat4[1];
-	glm::vec3 third = mat4[2];
-	
-	float scaleX = glm::length(first);
-	float scaleY = glm::length(second);
-	float scaleZ = glm::length(third);
-
-	glm::vec3 scale = {scaleX, scaleY, scaleZ};
-
-	first  = first  / scaleX;
-	second = second / scaleY;
-	third  = third  / scaleZ;
 }
 
 void loadScene(aiNode* root, Node*& load)
 {
+	//load->transform.scale = {1, 1, 1};
 	strcpy_s(load->name, 50, root->mName.C_Str());
-	
 
 	if (root->mNumMeshes)
 	{
@@ -207,9 +178,12 @@ void loadScene(aiNode* root, Node*& load)
 		load->type = NONE;
 	}
 
-	load->children.reserve(root->mNumChildren);
+	load->children.resize(root->mNumChildren);
 	for (int i = 0; i < root->mNumChildren; i++)
 	{
+		load->children[i] = new Node();
+		load->children[i]->transform = {};
+		load->children[i]->transform.scale = {1, 1, 1};
 		loadScene(root->mChildren[i], load->children[i]);
 	}
 }
@@ -226,31 +200,43 @@ inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from)
 	return to;
 }
 
-void drawNode(aiNode* node, const glm::mat4& parentTransform,  Mesh* globalMeshes, Shader& shader)
+void drawNode(Node* node, const glm::mat4& parentTransform,  Mesh* globalMeshes, Shader& shader, bool checkSelected=false, bool outline=false)
 {
 	glm::mat4 trf = parentTransform;
 
-	if (node->mNumMeshes)
+	if (checkSelected && node == mselectedNode)
 	{
-		trf = getModelMatrix(globalMeshes[node->mMeshes[0]].trf) * trf;
-		drawMesh(globalMeshes[node->mMeshes[0]], shader, trf, false, false);
+		outline = true;
 	}
 
-	for (int i = 0; i < node->mNumChildren; i++)
+	if (node->type == MESH)
 	{
-		drawNode(node->mChildren[i], trf, globalMeshes, shader);
+		trf = trf * getModelMatrix(node->transform);
+		
+		if (outline)
+		{
+			drawMesh(globalMeshes[node->resourceIndex], shader, trf * glm::scale(glm::mat4(1.0f), { 1.01f, 1.01f, 1.01f }), false, false, outline);
+		}
+		else
+		{
+			drawMesh(globalMeshes[node->resourceIndex], shader, trf, false, false, outline);
+		}
+		
+	}
+
+	for (int i = 0; i < node->children.size(); i++)
+	{
+		drawNode(node->children[i], trf, globalMeshes, shader, checkSelected, outline);
 	}
 }
 
-int main()
+GLFWwindow* initGLFW()
 {
-	//TODO: window class?
-	//Init GLFW and window
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
+
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "MEditate", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
@@ -264,7 +250,7 @@ int main()
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetScrollCallback(window, scrollCallback);
-	
+
 	glfwSetWindowPos(window, 40, 40);
 	glViewport(0, 0, DRAW_SECTION_WIDTH, SCREEN_HEIGHT);
 
@@ -275,8 +261,13 @@ int main()
 	stbi_image_free(image.pixels);
 
 	initImGui(window);
-	//Init point
-	POINT_VAO = createPointVAO();
+
+	return window;
+}
+
+int main()
+{
+	GLFWwindow* window = initGLFW();
 
 	//Init camera
 	Camera camera;
@@ -285,69 +276,78 @@ int main()
 	camera.up = { 0.0f, 1.0f, 0.0f };
 	camera.right = { 1.0f, 0.0f, 0.0f };
 	camera.fov = 80.0f;
-	glfwSetWindowUserPointer(window, &camera);
+
 	//reachable in callbacks
-	
+	glfwSetWindowUserPointer(window, &camera);
+
 	Shader basicShader("basic_vertex.shd", "basic_fragment.shd");
+	Shader outliningShader("basic_vertex.shd", "outlining_fragment.shd");
 
 	Assimp::Importer imp;
-	const aiScene* scene = imp.ReadFile("resources/back.dae", aiProcess_Triangulate);
+	const aiScene* scene = imp.ReadFile("resources/backpack.obj", aiProcess_Triangulate);
 	meshes.resize(scene->mNumMeshes);
 
 	for (int i = 0; i < scene->mNumMeshes; i++)
 	{
 		meshes[i] = {};
 		meshes[i].fillColor = { 0.5f, 0.5f, 0.5f };
-		meshes[i].edgesColor = { 1.0f, 1.0f, 1.0f };
-		meshes[i].trf.scale = { 1.0f, 1.0f, 1.0f };
 		loadMesh(scene->mMeshes[i], meshes[i]);
 	}
 
-	Mesh rootMesh{};
-	rootMesh.trf.scale = { 1.0f, 1.0f, 1.0f };
-	meshes.push_back(rootMesh);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//int selectedMesh = 0;
-
-	root = scene->mRootNode;
-	root->mName = "Root";
-
 	basicShader.Use();
 	basicShader.SetVector3f("lightPos", {0.0f, -2.0f, -1.0f});
+	
+	root = scene->mRootNode;
+	root->mName = "Root";
+	
+	mroot = new Node;
+	//mroot->type = MESH;
+	mroot->transform = {};
+	mroot->transform.scale = { 1, 1, 1 };
+	mroot->resourceIndex = meshes.size() - 1;
+	loadScene(root, mroot);
 
-	//imp.FreeScene();
-	//need to move scene to my tree-struct to be able to modify
-	//need to call freeScene() not to use extra memory
+	imp.FreeScene();
 
+	glEnable(GL_STENCIL_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		glStencilMask(0x00);
 		basicShader.Use();
 
 		//don't have scene graph and local trf yet
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 
-		drawNode(root, getModelMatrix(meshes[scene->mNumMeshes].trf), &meshes[0], basicShader);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+
+		drawNode(mroot, getModelMatrix(mroot->transform), &meshes[0], basicShader);
+
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		outliningShader.Use();
+		outliningShader.SetMatrix4("view", getViewMatrix(camera));
+		outliningShader.SetMatrix4("proj", getProjectionMatrix(camera));
+		drawNode(mroot, getModelMatrix(mroot->transform), &meshes[0], outliningShader, true);
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		beginDraw();
-		drawSceneGraph(root, selectedNode);
+		drawSceneGraph(mroot, mselectedNode);
 
-		if (selectedNode)
+		if (mselectedNode)
 		{
-			if (selectedNode == root)
-			{
-				drawProperties(selectedNode, meshes[scene->mNumMeshes].trf, true);
-			}
-			else
-			{
-				drawProperties(selectedNode, meshes[selectedNode->mMeshes[0]].trf);
-			}
+			drawProperties(mselectedNode, mselectedNode->transform);
 		}
-		
+
 		render();
 
 		glfwSwapBuffers(window);

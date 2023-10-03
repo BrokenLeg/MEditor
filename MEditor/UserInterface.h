@@ -5,6 +5,7 @@
 
 #include <GL/glew.h>
 
+#include "Node.h"
 #include "Mesh.h"
 #include "ScreenParams.h"
 
@@ -44,7 +45,7 @@ void render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void drawNode(aiNode* node, aiNode* &selectedNode)
+void drawNode(Node* node, Node* &selectedNode)
 {
 	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
 	if (node == selectedNode)
@@ -52,24 +53,24 @@ void drawNode(aiNode* node, aiNode* &selectedNode)
 		flags = ImGuiTreeNodeFlags_Selected;
 	}
 
-	if (ImGui::TreeNodeEx(node->mName.C_Str(), flags))
+	if (ImGui::TreeNodeEx(node->name, flags))
 	{
 		if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen())
 		{
-			std::cout << "SELECTED " << node->mName.C_Str() << std::endl;
+			std::cout << "SELECTED " << node->name << std::endl;
 			selectedNode = node;
 		}
 
-		for (int i = 0; i < node->mNumChildren; i++)
+		for (int i = 0; i < node->children.size(); i++)
 		{
-			drawNode(node->mChildren[i], selectedNode);
+			drawNode(node->children[i], selectedNode);
 		}
 
 		ImGui::TreePop();
 	}
 }
 
-void drawSceneGraph(aiNode* root, aiNode*& selectedNode)
+void drawSceneGraph(Node* root, Node*& selectedNode)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("SceneGraph", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -85,7 +86,7 @@ void drawSceneGraph(aiNode* root, aiNode*& selectedNode)
 	ImGui::End();
 }
 
-void drawProperties(aiNode* selectedNode, Transform& trf, bool root=false)
+void drawProperties(Node* selectedNode, Transform& trf, bool root=false)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("Properties", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -94,46 +95,49 @@ void drawProperties(aiNode* selectedNode, Transform& trf, bool root=false)
 
 	ImGui::SetWindowFontScale(1.5);
 
-	if (root)
+	ImGui::BeginTabBar("NodeProperties");
+
+	if (ImGui::BeginTabItem("Transform"))
 	{
-		ImGui::Text("Root");
+		if (!root)
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
+			ImGui::InputText("Name", selectedNode->name, 20);
+		}
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
+
+		//Translate
+		ImGui::Text("Location"); ImGui::SameLine();
+		float xOffset = ImGui::GetCursorPosX();
+
+		ImGui::DragFloat("X##pos", &trf.position.x, 0.05f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##pos", &trf.position.y, 0.05f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##pos", &trf.position.z, 0.05f);
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+		//Rotate
+		ImGui::Text("Rotation"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
+
+		ImGui::DragFloat("X##rot", &trf.orientation.x, 1.0f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##rot", &trf.orientation.y, 1.0f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##rot", &trf.orientation.z, 1.0f);
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+		//Scale
+		ImGui::Text("Scale"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
+
+		ImGui::DragFloat("X##scl", &trf.scale.x, 0.05f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##scl", &trf.scale.y, 0.05f);
+		ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##scl", &trf.scale.z, 0.05f);
+		ImGui::EndTabItem();
 	}
-	else
-	{
-		char name[50];
-		strcpy_s(name, 50, selectedNode->mName.C_Str());
-		ImGui::InputText("Name", name, 20);
-		selectedNode->mName = name;
-	}
 
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
-	ImGui::Text("Transform");
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
+	if (ImGui::BeginTabItem("Light"))
+		ImGui::EndTabItem();
 
-	//Translate
-	ImGui::Text("Location"); ImGui::SameLine();
-	float xOffset = ImGui::GetCursorPosX();
-
-	ImGui::DragFloat("X##pos", &trf.position.x, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##pos", &trf.position.y, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##pos", &trf.position.z, 0.05f);
-
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-	//Rotate
-	ImGui::Text("Rotation"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
-
-	ImGui::DragFloat("X##rot", &trf.orientation.x, 1.0f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##rot", &trf.orientation.y, 1.0f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##rot", &trf.orientation.z, 1.0f);
-
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-	//Scale
-	ImGui::Text("Scale"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
-
-	ImGui::DragFloat("X##scl", &trf.scale.x, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##scl", &trf.scale.y, 0.05f);
-	ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##scl", &trf.scale.z, 0.05f);
+	ImGui::EndTabBar();
 	ImGui::End();
 }

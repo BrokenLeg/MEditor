@@ -99,8 +99,8 @@ void createCubeVAO(Mesh& cube)
 	cube.fillVAO = createVAO(vertices, sizeof(vertices), fillIndices, sizeof(fillIndices));
 	cube.fillIndicesCount = sizeof(fillIndices);
 
-	cube.edgesVAO = createVAO(vertices, sizeof(vertices), edgesIndices, sizeof(edgesIndices));
-	cube.edgesIndicesCount = sizeof(edgesIndices);
+	//cube.edgesVAO = createVAO(vertices, sizeof(vertices), edgesIndices, sizeof(edgesIndices));
+	//cube.edgesIndicesCount = sizeof(edgesIndices);
 }
 
 void createTriangleVAO(Mesh& triangle)
@@ -127,8 +127,8 @@ void createTriangleVAO(Mesh& triangle)
 	triangle.fillVAO = createVAO(vertices, sizeof(vertices), fillIndices, sizeof(fillIndices));
 	triangle.fillIndicesCount = sizeof(fillIndices);
 
-	triangle.edgesVAO = createVAO(vertices, sizeof(vertices), edgesIndices, sizeof(edgesIndices));
-	triangle.edgesIndicesCount = sizeof(edgesIndices);
+	//triangle.edgesVAO = createVAO(vertices, sizeof(vertices), edgesIndices, sizeof(edgesIndices));
+	//triangle.edgesIndicesCount = sizeof(edgesIndices);
 }
 
 unsigned int createPointVAO()
