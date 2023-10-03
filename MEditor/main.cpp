@@ -40,6 +40,7 @@ Node* mroot;
 
 std::vector<Mesh> meshes;
 std::vector<Material> materials;
+std::vector<Light> lights;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -299,23 +300,14 @@ int main()
 
 	basicShader.Use();
 
-	Light globalLight{};
-	glm::vec3 pos = { 0.0f, -2.0f, -1.0f };
-	globalLight.ambient = {0.2f, 0.2f, 0.2f};
-	globalLight.diffuse = {0.5f, 0.5f, 0.5f};
-	globalLight.specular = {1.0f, 1.0f, 1.0f};
-
-	basicShader.SetVector3f("l.pos", pos);
-	basicShader.SetVector3f("l.amb", globalLight.ambient);
-	basicShader.SetVector3f("l.dif", globalLight.diffuse);
-	basicShader.SetVector3f("l.spec", globalLight.specular);
-
 	Material globalMaterial{};
 	globalMaterial.ambient = { 1.0f, 0.5f, 0.31f };
 	globalMaterial.diffuse = { 1.0f, 0.5f, 0.31f };
 	globalMaterial.specular = { 0.5f, 0.5f, 0.5f };
+	globalMaterial.shininess = 32;
 	materials.push_back(globalMaterial);
 	materials.push_back(globalMaterial); materials.push_back(globalMaterial); materials.push_back(globalMaterial);
+
 	root = scene->mRootNode;
 	root->mName = "Root";
 	
@@ -323,6 +315,21 @@ int main()
 	mroot->transform = {};
 	mroot->transform.scale = { 1, 1, 1 };
 	loadScene(root, mroot);
+
+	Node* l = new Node;
+	strcpy_s(l->name, 50, "Light");
+	l->transform = {};
+	l->transform.position = { 0.0f, -2.0f, -1.0f };
+	l->transform.scale = { 1, 1, 1 };
+	l->type = LIGHT;
+	l->resourceIndex = 0;
+
+	Light globalLight{};
+	globalLight.ambient = { 0.2f, 0.2f, 0.2f };
+	globalLight.diffuse = { 0.5f, 0.5f, 0.5f };
+	globalLight.specular = { 1.0f, 1.0f, 1.0f };
+	lights.push_back(globalLight);
+	mroot->children.push_back(l);
 
 	imp.FreeScene();
 
@@ -337,10 +344,17 @@ int main()
 		glStencilMask(0x00);
 		basicShader.Use();
 
-		//don't have scene graph and local trf yet
 		basicShader.SetMatrix4("view", getViewMatrix(camera));
 		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
 		basicShader.SetVector3f("viewPos", camera.position);
+
+		basicShader.SetVector3f("l.pos", l->transform.position);
+
+		Light ll = lights[l->resourceIndex];
+
+		basicShader.SetVector3f("l.amb", ll.ambient);
+		basicShader.SetVector3f("l.dif", ll.diffuse);
+		basicShader.SetVector3f("l.spec", ll.specular);
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
@@ -364,13 +378,20 @@ int main()
 		if (mselectedNode)
 		{
 			int* index = nullptr;
+			Light* light = nullptr;
 
 			if (mselectedNode->type == MESH)
 			{
 				Mesh& mesh = meshes[mselectedNode->resourceIndex];
 				index = &mesh.materialIndex;
 			}
-			drawProperties(mselectedNode, &mselectedNode->transform, &materials[0], index, materials.size() - 1);
+
+			if (mselectedNode->type == LIGHT)
+			{
+				light = &lights[mselectedNode->resourceIndex];
+			}
+
+			drawProperties(mselectedNode, &mselectedNode->transform, &materials[0], index, materials.size() - 1, light);
 		}
 
 		render();
