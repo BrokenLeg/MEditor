@@ -86,6 +86,7 @@ void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, const Mate
 		shader.SetVector3f("m.amb", mat.ambient);
 		shader.SetVector3f("m.dif", mat.diffuse);
 		shader.SetVector3f("m.spec", mat.specular);
+		shader.SetFloat("m.sh", mat.shininess);
 	}
 
 	shader.SetMatrix4("model", trf);
