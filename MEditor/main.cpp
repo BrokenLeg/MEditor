@@ -219,11 +219,11 @@ void drawNode(Node* node, const glm::mat4& parentTransform,  Mesh* globalMeshes,
 
 		if (outline)
 		{
-			drawMesh(mesh, shader, trf * glm::scale(glm::mat4(1.0f), { 1.01f, 1.01f, 1.01f }), materials[mesh.materialIndex], false, false, outline);
+			mesh.draw(shader, trf * glm::scale(glm::mat4(1.0f), { 1.01f, 1.01f, 1.01f }), materials[mesh.materialIndex], false, false, outline);
 		}
 		else
 		{
-			drawMesh(mesh, shader, trf, materials[mesh.materialIndex], false, false, outline);
+			mesh.draw(shader, trf, materials[mesh.materialIndex], false, false, outline);
 		}
 		
 	}
@@ -344,8 +344,8 @@ int main()
 		glStencilMask(0x00);
 		basicShader.Use();
 
-		basicShader.SetMatrix4("view", getViewMatrix(camera));
-		basicShader.SetMatrix4("proj", getProjectionMatrix(camera));
+		basicShader.SetMatrix4("view", camera.getViewMatrix());
+		basicShader.SetMatrix4("proj", camera.getProjectionMatrix());
 		basicShader.SetVector3f("viewPos", camera.position);
 
 		basicShader.SetVector3f("l.pos", l->transform.position);
@@ -365,8 +365,8 @@ int main()
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 		outliningShader.Use();
-		outliningShader.SetMatrix4("view", getViewMatrix(camera));
-		outliningShader.SetMatrix4("proj", getProjectionMatrix(camera));
+		outliningShader.SetMatrix4("view", camera.getViewMatrix());
+		outliningShader.SetMatrix4("proj", camera.getProjectionMatrix());
 		//drawNode(mroot, getModelMatrix(mroot->transform), &meshes[0], outliningShader, true);
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);

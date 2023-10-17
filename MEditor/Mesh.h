@@ -34,6 +34,32 @@ struct Mesh
 	glm::vec3 fillColor; //move to materials
 	unsigned int fillVAO;
 	unsigned int fillIndicesCount;
+
+	void draw(Shader& shader, const glm::mat4& trf, const Material& mat, bool edges, bool center, bool outline)
+	{
+		glBindVertexArray(fillVAO);
+
+		if (!outline)
+		{
+			shader.SetVector3f("m.amb", mat.ambient);
+			shader.SetVector3f("m.dif", mat.diffuse);
+			shader.SetVector3f("m.spec", mat.specular);
+			shader.SetFloat("m.sh", mat.shininess);
+		}
+
+		shader.SetMatrix4("model", trf);
+		glDrawElements(GL_TRIANGLES, fillIndicesCount, GL_UNSIGNED_INT, 0);
+
+		if (center)
+		{
+			glBindVertexArray(POINT_VAO);
+			glDisable(GL_DEPTH_TEST);
+			shader.SetVector3f("color", WHITE_COLOR);
+			glPointSize(5.0f);
+			glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
+			glEnable(GL_DEPTH_TEST);
+		}
+	}
 };
 
 glm::vec3 getEulerFromMatrix(const glm::mat4& R)
@@ -77,28 +103,3 @@ glm::mat4 getModelMatrix(const Transform& trf)
 	return translate * getRotationMatrixZYX(trf.orientation) * scale;
 }
 
-void drawMesh(const Mesh& mesh, Shader& shader, const glm::mat4& trf, const Material& mat, bool edges, bool center, bool outline)
-{
-	glBindVertexArray(mesh.fillVAO);
-
-	if (!outline)
-	{
-		shader.SetVector3f("m.amb", mat.ambient);
-		shader.SetVector3f("m.dif", mat.diffuse);
-		shader.SetVector3f("m.spec", mat.specular);
-		shader.SetFloat("m.sh", mat.shininess);
-	}
-
-	shader.SetMatrix4("model", trf);
-	glDrawElements(GL_TRIANGLES, mesh.fillIndicesCount, GL_UNSIGNED_INT, 0);
-
-	if (center)
-	{
-		glBindVertexArray(POINT_VAO);
-		glDisable(GL_DEPTH_TEST);
-		shader.SetVector3f("color", WHITE_COLOR);
-		glPointSize(5.0f);
-		glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
-		glEnable(GL_DEPTH_TEST);
-	}
-}

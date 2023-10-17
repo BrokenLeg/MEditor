@@ -13,15 +13,16 @@ struct Camera
 
 	glm::vec3 position;
 	float fov;
+
+	glm::mat4 getProjectionMatrix()
+	{
+		float aspectRation = (float)DRAW_SECTION_WIDTH / (float)SCREEN_HEIGHT;
+		return glm::perspective(fov, aspectRation, 0.1f, 100.0f);
+	}
+
+	glm::mat4 getViewMatrix()
+	{
+		return glm::lookAt(position, position + front, up);
+	}
+
 };
-
-glm::mat4 getProjectionMatrix(const Camera& camera)
-{
-	float aspectRation = (float)DRAW_SECTION_WIDTH / (float)SCREEN_HEIGHT;
-	return glm::perspective(camera.fov, aspectRation, 0.1f, 100.0f);
-}
-
-glm::mat4 getViewMatrix(const Camera& camera)
-{
-	return glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-}
