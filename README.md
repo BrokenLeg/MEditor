@@ -40,9 +40,7 @@ Added
 2. Editiong of Light and Material in ImGui tabs
 3. More flexible scene, can add lights as nodes, not all nodes contain meshes
 
-![day 6-7](https://github.com/BrokenLeg/MEditor/assets/68334150/481044a1-6563-4715-b76c-5bc443181927)
-
-
+![day 6-7](https://github.com/BrokenLeg/MEditor/assets/68334150/5735d4a1-186a-4013-9c46-4b4f3d86de84)
 
 
 
