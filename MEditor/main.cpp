@@ -456,7 +456,7 @@ int main()
 	Shader skyboxShader("skybox_vertex.shd", "skybox_fragment.shd");
 
 	Assimp::Importer imp;
-	const aiScene* scene = imp.ReadFile("resources/tree/christmas_tree.obj", aiProcess_Triangulate);
+	const aiScene* scene = imp.ReadFile("resources/cats/cats.obj", aiProcess_Triangulate);
 	meshes.resize(scene->mNumMeshes);
 	materials.resize(scene->mNumMaterials);
 
@@ -466,11 +466,12 @@ int main()
 		loadMesh(scene->mMeshes[i], meshes[i]);
 	}
 
+	stbi_set_flip_vertically_on_load(true);
 	for (int i = 1; i < scene->mNumMaterials; i++)
 	{
 		materials[i-1] = {};
 		materials[i-1].shininess = 128.0f;
-		loadMaterial(scene->mMaterials[i], materials[i-1], "./resources/tree/");
+		loadMaterial(scene->mMaterials[i], materials[i-1], "./resources/cats/");
 	}
 
 	basicShader.Use();
@@ -606,14 +607,14 @@ int main()
 
 	std::vector<std::string> faces
 	{
-		"skybox/px.png",
-		"skybox/nx.png",
-		"skybox/py.png",
-		"skybox/ny.png",
-		"skybox/pz.png",
-		"skybox/nz.png"
+		"skybox/right.jpg",
+		"skybox/left.jpg",
+		"skybox/top.jpg",
+		"skybox/bottom.jpg",
+		"skybox/front.jpg",
+		"skybox/back.jpg"
 	};
-	//stbi_set_flip_vertically_on_load(false);
+	stbi_set_flip_vertically_on_load(false);
 	unsigned int cubemapTexture = loadCubemap(faces);
 
 	while (!glfwWindowShouldClose(window))
