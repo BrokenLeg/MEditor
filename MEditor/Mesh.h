@@ -12,15 +12,6 @@ const glm::vec3 WHITE_COLOR = { 1.0f, 1.0f, 1.0f };
 
 const unsigned int MAX_NAME_LENGTH = 50;
 
-struct Orientation
-{
-	glm::vec3 front;
-	glm::vec3 up;
-	glm::vec3 right;
-	float yaw;
-	float pitch;
-};
-
 struct Transform
 {
 	glm::vec3 position; //also represents mesh center
@@ -31,7 +22,6 @@ struct Transform
 struct Mesh
 {
 	int materialIndex;
-	glm::vec3 fillColor; //move to materials
 	unsigned int fillVAO;
 	unsigned int fillIndicesCount;
 
@@ -39,13 +29,11 @@ struct Mesh
 	{
 		glBindVertexArray(fillVAO);
 
-		if (!outline)
-		{
-			shader.SetVector3f("m.amb", mat.ambient);
-			shader.SetVector3f("m.dif", mat.diffuse);
-			shader.SetVector3f("m.spec", mat.specular);
-			shader.SetFloat("m.sh", mat.shininess);
-		}
+		shader.Use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mat.diffuse_texture);
+		shader.SetInteger("material.diffuse", 0);
+		shader.SetFloat("material.shininess", mat.shininess);
 
 		shader.SetMatrix4("model", trf);
 		glDrawElements(GL_TRIANGLES, fillIndicesCount, GL_UNSIGNED_INT, 0);

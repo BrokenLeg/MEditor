@@ -182,6 +182,8 @@
     <None Include="basic_fragment.shd" />
     <None Include="basic_vertex.shd" />
     <None Include="outlining_fragment.shd" />
+    <None Include="skybox_fragment.shd" />
+    <None Include="skybox_vertex.shd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,7 +10,10 @@ enum resourceType
 {
 	NONE = 0, //empty node only for grouping
 	MESH, 
-	LIGHT
+	LIGHT,
+	DIR_LIGHT,
+	POINT_LIGHT,
+	SPOT_LIGHT
 };
 
 struct Node

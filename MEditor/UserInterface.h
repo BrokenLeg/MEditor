@@ -89,7 +89,7 @@ void drawSceneGraph(Node* root, Node*& selectedNode)
 }
 
 void drawProperties(Node* selectedNode, Transform* trf, Material* mats, int* materialIndex, int maxMaterials, 
-	Light* l, bool root=false)
+	DirectionalLight* dl, PointLight* pl, SpotLight* sl, bool root=false)
 {
 	bool imGuiWindowIsClosed;
 	ImGui::Begin("Properties", &imGuiWindowIsClosed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -151,32 +151,10 @@ void drawProperties(Node* selectedNode, Transform* trf, Material* mats, int* mat
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
 
 			// Ambient
-				ImGui::Text("Ambient"); ImGui::SameLine();
+			ImGui::Text("Base Color"); ImGui::SameLine();
 			float xOffset = ImGui::GetCursorPosX();
 
 			Material* mat = mats + *materialIndex;
-
-			ImGui::DragFloat("X##amb", &mat->ambient.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##amb", &mat->ambient.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##amb", &mat->ambient.z, changeSpeed, 0.0f, 1.0f);
-
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-			//Diffuse
-			ImGui::Text("Diffuse"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
-
-			ImGui::DragFloat("X##dif", &mat->diffuse.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##dif", &mat->diffuse.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##dif", &mat->diffuse.z, changeSpeed, 0.0f, 1.0f);
-
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-			//Specular
-			ImGui::Text("Specular"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
-
-			ImGui::DragFloat("X##spc", &mat->specular.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##spc", &mat->specular.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##spc", &mat->specular.z, changeSpeed, 0.0f, 1.0f);
 
 			//Shininess
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
@@ -185,37 +163,151 @@ void drawProperties(Node* selectedNode, Transform* trf, Material* mats, int* mat
 		}
 	}
 
-	if (l)
+	if (dl)
 	{
-		if (ImGui::BeginTabItem("Light"))
+		if (ImGui::BeginTabItem("Directional Light"))
 		{
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
 
-			// Ambient
-			ImGui::Text("Ambient"); ImGui::SameLine();
+			//Direction
+			ImGui::Text("Direction"); ImGui::SameLine();
 			float xOffset = ImGui::GetCursorPosX();
 
-			ImGui::DragFloat("X##lamb", &l->ambient.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lamb", &l->ambient.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lamb", &l->ambient.z, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##ldir", &dl->direction.x, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldir", &dl->direction.y, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldir", &dl->direction.z, changeSpeed);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			// Ambient
+			ImGui::Text("Ambient"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lamb", &dl->base.ambient.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lamb", &dl->base.ambient.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lamb", &dl->base.ambient.z, changeSpeed, 0.0f, 1.0f);
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
 			//Rotate
-			ImGui::Text("Diffuse"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
+			ImGui::Text("Diffuse"); ImGui::SameLine();
 
-			ImGui::DragFloat("X##ldif", &l->diffuse.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldif", &l->diffuse.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldif", &l->diffuse.z, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##ldif", &dl->base.diffuse.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldif", &dl->base.diffuse.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldif", &dl->base.diffuse.z, changeSpeed, 0.0f, 1.0f);
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
 			//Scale
-			ImGui::Text("Specular"); ImGui::SameLine(); ImGui::SetCursorPosX(xOffset);
+			ImGui::Text("Specular"); ImGui::SameLine();
 
-			ImGui::DragFloat("X##lspc", &l->specular.x, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lspc", &l->specular.y, changeSpeed, 0.0f, 1.0f);
-			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lspc", &l->specular.z, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lspc", &dl->base.specular.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lspc", &dl->base.specular.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lspc", &dl->base.specular.z, changeSpeed, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
+	}
+
+	if (pl)
+	{
+		if (ImGui::BeginTabItem("Point Light"))
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
+
+			//Attenuation
+			ImGui::Text("Attenuation"); ImGui::SameLine();
+			float xOffset = ImGui::GetCursorPosX();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("C##ldir", &pl->attenuation.constant, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("L##ldir", &pl->attenuation.linear, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Q##ldir", &pl->attenuation.quadratic, changeSpeed);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			// Ambient
+			ImGui::Text("Ambient"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lamb", &pl->base.ambient.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lamb", &pl->base.ambient.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lamb", &pl->base.ambient.z, changeSpeed, 0.0f, 1.0f);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//Rotate
+			ImGui::Text("Diffuse"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##ldif", &pl->base.diffuse.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldif", &pl->base.diffuse.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldif", &pl->base.diffuse.z, changeSpeed, 0.0f, 1.0f);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//Scale
+			ImGui::Text("Specular"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lspc", &pl->base.specular.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lspc", &pl->base.specular.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lspc", &pl->base.specular.z, changeSpeed, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
+	}
+
+	if (sl)
+	{
+		if (ImGui::BeginTabItem("Specular Light"))
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20);
+
+			//Attenuation
+			ImGui::Text("Attenuation"); ImGui::SameLine();
+			float xOffset = ImGui::GetCursorPosX();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("C##ldir", &sl->attenuation.constant, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("L##ldir", &sl->attenuation.linear, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Q##ldir", &sl->attenuation.quadratic, changeSpeed);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//Direction
+			ImGui::Text("Direction"); ImGui::SameLine();
+			
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##ldir", &sl->direction.x, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldir", &sl->direction.y, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldir", &sl->direction.z, changeSpeed);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//CutOffs
+			ImGui::Text("Cut Offs"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("I##lin", &sl->cutOff, changeSpeed);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("O##lout", &sl->outerCutOff, changeSpeed);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			// Ambient
+			ImGui::Text("Ambient"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lamb", &sl->base.ambient.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lamb", &sl->base.ambient.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lamb", &sl->base.ambient.z, changeSpeed, 0.0f, 1.0f);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//Rotate
+			ImGui::Text("Diffuse"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##ldif", &sl->base.diffuse.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##ldif", &sl->base.diffuse.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##ldif", &sl->base.diffuse.z, changeSpeed, 0.0f, 1.0f);
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+			//Scale
+			ImGui::Text("Specular"); ImGui::SameLine();
+
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("X##lspc", &sl->base.specular.x, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Y##lspc", &sl->base.specular.y, changeSpeed, 0.0f, 1.0f);
+			ImGui::SetCursorPosX(xOffset); ImGui::DragFloat("Z##lspc", &sl->base.specular.z, changeSpeed, 0.0f, 1.0f);
 			ImGui::EndTabItem();
 		}
 	}
